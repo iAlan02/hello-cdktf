@@ -22,7 +22,6 @@
   Destroy:
     cdktf destroy [stack] Destroy the stack
 
-
  Upgrades:
    npm run upgrade        Upgrade cdktf modules to latest version
    npm run upgrade:next   Upgrade cdktf modules to latest "@next" version (last commit)
