@@ -19,6 +19,7 @@ class MyStack extends TerraformStack {
       skipCredentialsValidation: true,
       skipMetadataApiCheck: "true",
       skipRequestingAccountId: true,
+      // Endpoints used in LocalStack
       endpoints: [
         {
           ec2: "http://localhost:4566",
@@ -27,7 +28,7 @@ class MyStack extends TerraformStack {
           apigateway: "http://localhost:4566",
         },
       ],
-    });
+    });     // Create a new AWS provider instance
 
     const aws_iam_role = new iam.IamRole(this, "ia-role-for-lambda", {
       name: "iam_hello_role",
@@ -52,12 +53,12 @@ class MyStack extends TerraformStack {
       handler: "hello-world.handler",
       runtime: "nodejs14.x",
       role: aws_iam_role.arn,
-    });
+    }); // Create a new Lambda function instance
 
     const helloRestApi = new apigateway.ApiGatewayRestApi(this, "hello-api", {
       name: "HelloApi",
       description: "API to call Hello World",
-    });
+    }); // Create a new API Gateway REST API instance
 
     new lambdafunction.LambdaPermission(this, "hello-permission", {
       statementId: "AllowAPIGatewayInvoke",
@@ -65,7 +66,7 @@ class MyStack extends TerraformStack {
       functionName: lambda.functionName,
       principal: "apigateway.amazonaws.com",
       sourceArn: helloRestApi.executionArn + "/*/*/*",
-    });
+    }); // Create a new Lambda permission instance
 
     const proxy_method = new apigateway.ApiGatewayMethod(this, "proxy-root", {
       restApiId: helloRestApi.id,
@@ -82,7 +83,7 @@ class MyStack extends TerraformStack {
         parentId: helloRestApi.rootResourceId,
         pathPart: "{proxy+}",
       }
-    );
+    ); // Create a new API Gateway resource instance
 
     const lambda_root = new apigateway.ApiGatewayIntegration(
       this,
@@ -103,7 +104,7 @@ class MyStack extends TerraformStack {
       httpMethod: "ANY",
       resourceId: helloResource.id,
       restApiId: helloRestApi.id,
-    });
+    }); // Create a new API Gateway method instance
 
     const helloIntegration = new apigateway.ApiGatewayIntegration(
       this,
@@ -116,7 +117,7 @@ class MyStack extends TerraformStack {
         type: "AWS_PROXY",
         uri: lambda.invokeArn,
       }
-    );
+    ); // Create a new API Gateway integration instance
 
     const deployment = new apigateway.ApiGatewayDeployment(
       this,
@@ -126,18 +127,18 @@ class MyStack extends TerraformStack {
         dependsOn: [helloIntegration, lambda_root],
         stageName: "test",
       }
-    );
+    ); // Create a new API Gateway deployment instance
 
     new TerraformOutput(this, "deployment", {
       value: `${deployment.invokeUrl}`,
-    });
+    }); // Create a new Terraform output instance
 
     new TerraformOutput(this, "endpoint", {
       value: `http://localhost:4566/restapis/${helloRestApi.id}/test/_user_request_/`,
-    });
+    }); // Create a new Terraform output instance
   }
 }
 
-const app = new App();
-new MyStack(app, "cdktf-tutorial");
-app.synth();
+const app = new App();  // Create a new App instance
+new MyStack(app, "cdktf-tutorial"); // Create a new CDKTF stack instance
+app.synth();  // Generate the CloudFormation template
